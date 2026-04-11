@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lexicon — A Daily Dictionary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="paper">
+    <header class="masthead">
+      <div class="masthead-top">
+        <span class="volume">VOL. I · № 1</span>
+        <span class="date" id="date"></span>
+      </div>
+      <h1 class="title">Lexicon</h1>
+      <p class="subtitle">A daily dictionary of consequence · Spaced repetition for words that last</p>
+      <nav class="columns">
+        <button class="col active" data-tab="learn">Lesson</button>
+        <button class="col" data-tab="review">Review</button>
+        <button class="col" data-tab="quiz">Examination</button>
+        <button class="col" data-tab="stats">Almanac</button>
+      </nav>
+    </header>
+    <main>
+      <section id="learn" class="tab active"></section>
+      <section id="review" class="tab"></section>
+      <section id="quiz" class="tab"></section>
+      <section id="stats" class="tab"></section>
+    </main>
+    <footer class="colophon">
+      <span>— Fin. —</span>
+      <span>Set in Fraunces &amp; Newsreader</span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
