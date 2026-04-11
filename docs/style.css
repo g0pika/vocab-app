@@ -231,7 +231,34 @@ nav.columns .col + .col::before {
   line-height: .95;
   color: var(--ink);
   font-variation-settings: "opsz" 144, "SOFT" 50;
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
 }
+.speak-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--taupe);
+  transition: all .2s;
+  flex-shrink: 0;
+  padding: 0;
+  vertical-align: middle;
+  position: relative;
+  top: -.1em;
+}
+.speak-btn:hover {
+  color: var(--rubric);
+  border-color: var(--rubric);
+  background: rgba(184,52,28,.05);
+}
+.speak-btn:active { transform: scale(.94); }
 .word-definition {
   font-family: var(--font-display);
   font-weight: 400;
@@ -462,6 +489,58 @@ nav.columns .col + .col::before {
   line-height: 1;
 }
 .almanac-value.rubric { color: var(--rubric); }
+.almanac-clickable { cursor: pointer; transition: background .2s; }
+.almanac-clickable:hover { background: rgba(184,52,28,.04); }
+.almanac-clickable .almanac-label::after {
+  content: " ›";
+  color: var(--taupe-pale);
+  font-family: var(--font-display);
+  font-style: normal;
+}
+
+/* ———— Learning list ———— */
+.learning-list {
+  max-width: 620px;
+  margin: 32px auto 0;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  animation: fadeIn .4s ease-out;
+}
+.learning-header {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--rubric);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.learning-items { list-style: none; padding: 0; }
+.learning-item {
+  padding: 16px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.learning-item:last-child { border-bottom: none; }
+.learning-word {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 24px;
+  color: var(--ink);
+  margin-right: 14px;
+}
+.learning-meaning {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.learning-empty {
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--taupe);
+  padding: 20px 0;
+}
 
 /* ———— Empty / loading ———— */
 .empty, .loading {

@@ -131,6 +131,33 @@ function computeStats() {
   };
 }
 
+// ———— Speech ————
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.85;
+  u.pitch = 1;
+  u.lang = 'en-US';
+  window.speechSynthesis.speak(u);
+}
+
+function speakBtn(word) {
+  return `<button class="speak-btn" data-speak="${word}" aria-label="Pronounce ${word}" title="Pronounce">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 5 6 9H2v6h4l5 4z"/>
+      <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+      <path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+    </svg>
+  </button>`;
+}
+
+function bindSpeak() {
+  document.querySelectorAll('[data-speak]').forEach(btn => {
+    btn.onclick = (e) => { e.stopPropagation(); speak(btn.dataset.speak); };
+  });
+}
+
 // ———— UI helpers ————
 const $ = (id) => document.getElementById(id);
 
@@ -216,7 +243,7 @@ function loadLearn() {
   el.innerHTML = progressEl + `
     <div class="entry-label">Entry № ${toRoman(wordIndex)}</div>
     <div class="word-headline">
-      <h2 class="word-title">${w.word}</h2>
+      <h2 class="word-title">${w.word}${speakBtn(w.word)}</h2>
     </div>
     <p class="word-definition">${w.meaning}</p>
     <span class="entry-rule"></span>
@@ -235,11 +262,11 @@ function loadLearn() {
       </div>` : ''}
     </div>
     <div class="actions">
-      <button class="act" data-id="${w.id}" data-correct="false" data-tab="learn">Forgotten</button>
-      <button class="act" data-id="${w.id}" data-correct="true" data-tab="learn">Recalled</button>
+      <button class="act" data-id="${w.id}" data-correct="true" data-tab="learn">Next entry →</button>
     </div>`;
   bindQuota();
   bindGrade();
+  bindSpeak();
 }
 
 function bindQuota() {
@@ -275,7 +302,7 @@ function loadReview() {
   el.innerHTML = `
     <div class="entry-label">Review</div>
     <div class="word-headline">
-      <h2 class="word-title">${w.word}</h2>
+      <h2 class="word-title">${w.word}${speakBtn(w.word)}</h2>
     </div>
     <p id="flash-prompt" class="flash-prompt">— Tap to reveal the meaning —</p>
     <div id="flash-back" style="display:none">
@@ -295,6 +322,7 @@ function loadReview() {
     $('flash-back').style.display = 'block';
   };
   bindGrade();
+  bindSpeak();
 }
 
 function loadQuiz() {
@@ -320,7 +348,7 @@ function loadQuiz() {
   el.innerHTML = `
     <div class="entry-label">Examination</div>
     <div class="word-headline">
-      <h2 class="word-title">${w.word}</h2>
+      <h2 class="word-title">${w.word}${speakBtn(w.word)}</h2>
     </div>
     <p class="flash-prompt" style="cursor:default">— Choose the true meaning —</p>
     <div class="quiz-options">
@@ -344,6 +372,14 @@ function loadQuiz() {
       $('quiz-next').onclick = () => loadQuiz();
     };
   });
+  bindSpeak();
+}
+
+function getWordsByStep(predicate) {
+  return WORDS.filter(w => {
+    const r = STATE.reviews[w.id];
+    return r && predicate(r);
+  }).sort((a, b) => a.word.localeCompare(b.word));
 }
 
 function loadStats() {
@@ -354,14 +390,64 @@ function loadStats() {
     <h2 class="almanac-heading">Almanac</h2>
     <p class="almanac-sub">A record of words &amp; retention</p>
     <div class="almanac-grid">
-      <div class="almanac-row"><span class="almanac-label">Words in the corpus</span><span class="almanac-value">${s.total}</span></div>
-      <div class="almanac-row"><span class="almanac-label">Yet unseen</span><span class="almanac-value">${s.new}</span></div>
-      <div class="almanac-row"><span class="almanac-label">Presently learning</span><span class="almanac-value rubric">${s.learning}</span></div>
-      <div class="almanac-row"><span class="almanac-label">Committed to memory</span><span class="almanac-value">${s.mastered}</span></div>
+      <div class="almanac-row almanac-clickable" data-list="learning">
+        <span class="almanac-label">Presently learning</span>
+        <span class="almanac-value rubric">${s.learning}</span>
+      </div>
+      <div class="almanac-row almanac-clickable" data-list="mastered">
+        <span class="almanac-label">Committed to memory</span>
+        <span class="almanac-value">${s.mastered}</span>
+      </div>
       <div class="almanac-row"><span class="almanac-label">Due today</span><span class="almanac-value">${s.due_today}</span></div>
       <div class="almanac-row"><span class="almanac-label">Review accuracy</span><span class="almanac-value">${accuracy(s.review_correct, s.review_wrong)}</span></div>
       <div class="almanac-row"><span class="almanac-label">Examination accuracy</span><span class="almanac-value">${accuracy(s.exam_correct, s.exam_wrong)}</span></div>
-    </div>`;
+    </div>
+    <div id="word-list" class="learning-list" style="display:none"></div>`;
+  document.querySelectorAll('.almanac-clickable').forEach(row => {
+    row.onclick = () => toggleWordList(row.dataset.list);
+  });
+}
+
+const LIST_CONFIG = {
+  learning: {
+    title: 'Words in progress',
+    empty: 'No words in progress yet.',
+    predicate: r => r.step > 0 && r.step < 8,
+  },
+  mastered: {
+    title: 'Committed to memory',
+    empty: 'No words mastered yet.',
+    predicate: r => r.step >= 8,
+  },
+};
+
+let currentList = null;
+
+function toggleWordList(kind) {
+  const list = $('word-list');
+  if (currentList === kind) {
+    list.style.display = 'none';
+    list.innerHTML = '';
+    currentList = null;
+    return;
+  }
+  const cfg = LIST_CONFIG[kind];
+  const words = getWordsByStep(cfg.predicate);
+  if (!words.length) {
+    list.innerHTML = `<p class="learning-empty">${cfg.empty}</p>`;
+  } else {
+    list.innerHTML = `
+      <div class="learning-header">${cfg.title}</div>
+      <ul class="learning-items">
+        ${words.map(w => `
+          <li class="learning-item">
+            <span class="learning-word">${w.word}</span>
+            <span class="learning-meaning">${w.meaning}</span>
+          </li>`).join('')}
+      </ul>`;
+  }
+  list.style.display = 'block';
+  currentList = kind;
 }
 
 // ———— Init ————
