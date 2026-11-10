@@ -54,8 +54,6 @@ docker build -t lexicon .
 docker run -p 8080:8080 -v $(pwd)/data:/data lexicon
 ```
 
-A `fly.toml` is included for Fly.io deployment with a mounted volume for SQLite.
-
 ## Spaced repetition design
 
 Each review advances the word's step counter; the next review lands in `(step+1)²` days. Both correct and wrong answers advance the step — wrong answers only update the error counter. This ensures no word gets stuck in a loop, while still surfacing difficulty via the examination signal.
